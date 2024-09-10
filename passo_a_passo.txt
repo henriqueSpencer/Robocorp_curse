@@ -1,0 +1,16 @@
+Shift-Command-P
+    - Create Task Package (Robot)
+    - Python - Minimal
+    - Use workspace folder
+
+Shift-Command-P
+    Run Robot
+
+
+Subir na robocorp:
+    1. Upload Robot -> Upload Task Package
+        Shift-Command-P
+        Upload Task Package
+        enter
+        credential
+    2. Criar processo: Unattended -> Processes
