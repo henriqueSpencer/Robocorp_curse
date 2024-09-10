@@ -1,13 +1,12 @@
 import time
 
 from robocorp import browser
-from robocorp.tasks import task
 from RPA.Excel.Files import Files
 from RPA.HTTP import HTTP
 from RPA.PDF import PDF
 
 
-def curse_level_I_task():
+def curse_level_I_tasks():
     """ This is a minimal task. """
     # Slow down the browser to make it easier to see what's happening.
     # browser.configure(

@@ -1,2 +1,2 @@
-def curse_level_III_task():
+def curse_level_III_tasks():
     pass
