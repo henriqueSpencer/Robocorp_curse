@@ -19,3 +19,14 @@ Subir na robocorp:
 # pip install rpaframework
 pip install --upgrade rpaframework
 
+Robot Yaml to curse I e II:
+    tasks:
+    Run Task:
+        shell: python -m robocorp.tasks run tasks.py
+
+Robot Yaml to curse III:
+    tasks:
+    Produce data:
+        shell: python -m robocorp.tasks run producer.py
+    Consume data:
+        shell: python -m robocorp.tasks run consumer.py
