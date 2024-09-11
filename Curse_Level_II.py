@@ -13,6 +13,9 @@
     - possible to get the robot from the public GitHub repository and run it without manual setup
 """
 import csv
+import os
+import time
+import zipfile
 
 from robocorp import browser
 from RPA.Excel.Files import Files
@@ -27,12 +30,19 @@ def curse_level_II_tasks():
         slowmo=1000,
     )
     list_robots_datas = get_input_data_from_csv()
-    print(list_robots_datas)
+    # print(list_robots_datas)
     open_the_intranet_website()
+    files = []
     for robot_data in list_robots_datas:
-        create_order(robot_data)
-        save_order_receipt_as_pdf(robot_data)
-        handle_order_new_robot()
+        try:
+            create_order(robot_data)
+        except Exception as e:
+            print(f"Error: {e}")
+        else:
+            files.append(save_order_receipt_as_pdf(robot_data))
+            handle_order_new_robot()
+            handle_pop_up()
+    make_zip_with_pdfs(files)
 
 def handle_order_new_robot():
     page = browser.page()
@@ -45,6 +55,8 @@ def handle_pop_up():
 def open_the_intranet_website():
     """ Opens the intranet website. """
     print("Opening the intranet website.")
+    browser.goto("https://robotsparebinindustries.com")
+    time.sleep(5)
     browser.goto("https://robotsparebinindustries.com/#/robot-order")
     handle_pop_up()
 
@@ -74,16 +86,29 @@ def create_order(robot_data):
     #Address
     page.fill('id=address', robot_data["Address"])
 
+    page.click("button:text('Order')")
+    # Check if the div exists
+    div = page.query_selector('div.alert.alert-danger[role="alert"]')
+    if div:
+        raise Exception("Error creating the order")
+    #     open_the_intranet_website(retry=False)
+    #     create_order(robot_data)
+    
+
+
 def save_order_receipt_as_pdf(robot_data):
+    """ Save the order receipt as a PDF """
+    pdf_file_name = f"output/robot_receipt_{robot_data['Order number']}.pdf"
     robot_preview_data = get_order_preview_data()
     get_robot_screenshot()
     pdf = PDF()
-    pdf.html_to_pdf(robot_preview_data, f"output/robot_preview{robot_data['Order number']}.pdf")
+    pdf.html_to_pdf(robot_preview_data, pdf_file_name)
     # Add the image to the PDF
-    pdf.add_image("output/robot.png", x=100, y=100, width=200, height=200)
+    # pdf.add_files_to_pdf(files=["output/robot.png:align=center, width=20, height=20"],
+    #                       target_document=f"output/robot_preview{robot_data['Order number']}.pdf")
+
+    return pdf_file_name
     
-    # Save the modified PDF
-    pdf.save(f"output/robot_preview{robot_data['Order number']}.pdf")
 
 def get_order_preview_data():
     page = browser.page()
@@ -94,16 +119,23 @@ def get_order_preview_data():
 def get_robot_screenshot():
     #<div id="robot-preview-image"><img src="/heads/1.png" alt="Head"><img src="/bodies/2.png" alt="Body"><img src="/legs/2.png" alt="Legs"></div>
     page = browser.page()
-    page.locator("div=robot-preview-image").screenshot(path="output/robot.png")
+    robot_img = page.locator("id=robot-preview-image")
+    #robot_img.is_visible()
+    robot_img.screenshot(path="output/robot.png")
+
+def make_zip_with_pdfs(files):
+    """ Make a zip with the pdfs """
+    output_zip_path = "output/robot_receipts.zip"
+    with zipfile.ZipFile(output_zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        # Walk through the source folder
+        for file in files:
+            # Add the file to the ZIP archive, preserving the folder structure
+            try:
+                zipf.write(file)
+            except Exception as e:
+                continue
 
 
 if __name__ == "__main__":
-    #pass
-    # from robocorp import browser
-    # page = browser.page()
-    # page.select_option("id=head", str(robot_data['Sales Target']))
-    print("Opening the intranet website.")
-    browser.goto("https://robotsparebinindustries.com/#/robot-order")
-    handle_pop_up()
-    page = browser.page()
-    page.select_option("id=head", "1")
+    curse_level_II_tasks()
+  
